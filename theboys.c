@@ -1,43 +1,55 @@
-// entity_test.c
+// theboys.c
 #include <stdio.h>
+#include <stdlib.h>
 #include "entity.h"
+#include "simulation.h"
 #include "conjunto.h"
-#include "lista.h"
 
 int main(void) {
-    // --- Teste de Hero ---
-    struct cjto_t *habs = cjto_cria(10);
-    cjto_insere(habs, 2);
-    Hero *h = hero_create(1, habs, 5, 10);
-    printf("Hero: ID=%d, pac=%d, vel=%d, vivo=%d, exp=%d, base_atual=%d\n",
-           h->id, h->paciencia, h->velocidade, h->vivo, h->experiencia, h->base_atual);
-    hero_destroy(h);
+    // --- Parâmetros fixos do cenário de teste ---
+    int n_habs         = 3;
+    int n_herois       = 1;
+    int n_bases        = 1;
+    int n_missoes      = 1;
+    int n_compostos_v  = 0;
+    int tamanho_mundo  = 4320;
 
-    // --- Teste de Base ---
-    Point p = { .x = 10, .y = 20 };
-    Base *b = base_create(2, 3, p);
-    printf("Base: ID=%d, lotacao=%d, local=(%d,%d), fila_max=%d, missoes=%d\n",
-           b->id, b->lotacao, b->local.x, b->local.y, b->fila_max, b->missoes);
-    base_destroy(b);
+    // Cria o mundo
+    World *W = world_create(n_herois,
+                            n_bases,
+                            n_missoes,
+                            n_habs,
+                            n_compostos_v,
+                            tamanho_mundo);
+    if (!W) {
+        fprintf(stderr, "Erro: falha ao criar World\n");
+        return 1;
+    }
 
-    // --- Teste de Mission ---
-    struct cjto_t *req = cjto_cria(10);
-    cjto_insere(req, 4);
-    Mission *m = mission_create(3, req, (Point){ .x = 5, .y = 6 });
-    printf("Mission: ID=%d, cumprida=%d, tentativas=%d\n",
-           m->id, m->cumprida, m->tentativas);
-    mission_destroy(m);
+    // --- Cria 1 herói manualmente ---
+    // Herói 0: paciência 5, velocidade 10, base 0, habilidades {0,1}
+    struct cjto_t *habs = cjto_cria(n_habs);
+    cjto_insere(habs, 0);
+    cjto_insere(habs, 1);
+    Hero *h = hero_create(0, habs, 5, 10);
+    h->base_atual = 0;
+    W->herois[0] = h;
 
-    // --- Teste de World ---
-    World *w = world_create(1, 1, 1, 10, 2, 100);
-    // popula vetores dinamicamente
-    w->herois[0]  = hero_create(4, cjto_aleat(2,10), 8, 12);
-    w->bases[0]   = base_create(5, 5, (Point){ .x = 1, .y = 2 });
-    w->missoes[0] = mission_create(6, cjto_aleat(1,10), (Point){ .x = 3, .y = 4 });
-    printf("World: n_herois=%d, n_bases=%d, n_missoes=%d, relogio=%d\n",
-           w->n_herois, w->n_bases, w->n_missoes, w->relogio);
-    world_destroy(w);
+    // --- Cria 1 base manualmente ---
+    // Base 0: lotação 1, posição (0,0)
+    W->bases[0] = base_create(0, 1, (Point){ .x = 0, .y = 0 });
 
-    printf("Todos os testes concluídos com sucesso.\n");
+    // --- Cria 1 missão manualmente ---
+    // Missão 0: requer {0,1}, posição (10,10)
+    struct cjto_t *req = cjto_cria(n_habs);
+    cjto_insere(req, 0);
+    cjto_insere(req, 1);
+    W->missoes[0] = mission_create(0, req, (Point){ .x = 10, .y = 10 });
+
+    // Executa a simulação
+    simular(W);
+
+    // Limpa tudo
+    world_destroy(W);
     return 0;
 }
