@@ -1,4 +1,3 @@
-// includes/log.h
 #ifndef LOG_H
 #define LOG_H
 
@@ -28,16 +27,22 @@ void log_entra(int t, Hero *h, Base *b, int presentes, int lotacao);
 void log_sai(int t, Hero *h, Base *b, int presentes, int lotacao);
 
 // Viagem: origem→destino, distância, velocidade e chegada prevista
-void log_viaja(int t, Hero *h, Base *origem, Base *dest, int dist, int vel, int t_chegada);
+void log_viaja(int t, Hero *h, Base *orig, Base *dest, int dist, int vel, int t_chegada);
 
-// Morte: herói morre durante missão
+// Morte: herói morre na base ou em missão
 void log_morre(int t, Hero *h, Mission *m);
 
 // Requisição de missão: ponto de partida
 void log_missao_req(int t, Mission *m);
 
-// Análise de base para missão (debug)
-void log_missao_base(int t, Mission *m, Base *b, int dist, struct lista_t *fila);
+// DEBUG: análise de base para missão (lista de heróis presentes)
+void log_missao_base(int t, Mission *m, Base *b, int dist);
+
+// DEBUG: mostra habilidades de cada herói antes de compor a união
+void log_missao_hab(int t, Mission *m, Hero *h);
+
+// DEBUG: mostra união final de habilidades de uma base
+void log_missao_uniao(int t, Mission *m, Base *b, struct cjto_t *uni);
 
 // Missão bem-sucedida: base, distância e lista de heróis
 void log_missao_succ(int t, Mission *m, Base *b, int dist, struct lista_t *herois);

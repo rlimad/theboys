@@ -1,4 +1,3 @@
-// src/event.c
 #include <stdlib.h>
 #include "event.h"
 
@@ -87,14 +86,14 @@ Evento* criar_evento_viagem(int tempo, Hero* heroi, Base* base_destino) {
 }
 
 // Cria um evento de morte             (tempo, herói, base)
-Evento* criar_evento_morte(int tempo, Hero* heroi, Base* base) {
+Evento* criar_evento_morte(int tempo, Hero* heroi, Mission* missao) {
     Evento* e = malloc(sizeof *e);
     if (!e) return NULL;
     e->tempo   = tempo;
     e->tipo    = MORTE;
     e->heroi   = heroi;
-    e->base    = base;
-    e->missao  = NULL;
+    e->base    = NULL;
+    e->missao  = missao;
     return e;
 }
 
@@ -132,6 +131,8 @@ int evento_comparar(const void* a, const void* b) {
 }
 
 // Libera o evento da memória
-void evento_destruir(Evento* e) {
+void evento_destruir(Evento *e) {
+    if (!e) return;
     free(e);
 }
+

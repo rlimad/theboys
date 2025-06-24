@@ -1,55 +1,86 @@
 // theboys.c
+// Carlos Maziero – DINF/UFPR, 2024/2
+// Ajustado para aumentar taxa de sucesso sem 100% de acertos
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "entity.h"
 #include "simulation.h"
 #include "conjunto.h"
+#include "utils.h"
+
+#define T_FIM_DO_MUNDO   525600
+#define N_TAMANHO_MUNDO  20000
+#define N_HABILIDADES    10
+#define N_HEROIS         (N_HABILIDADES * 5)
+#define N_BASES          (N_HEROIS / 5)
+#define N_MISSOES        (T_FIM_DO_MUNDO / 100)
+// 3 Compostos V por habilidade
+#define N_COMPOSTOS_V    (N_HABILIDADES * 3)
+
+// Parâmetros ajustáveis para cobertura X requisitos moderados
+// Parâmetros ajustáveis para cobertura X requisitos moderados
+#define MIN_HERO_HABS    5                // heróis têm de 5 até todas as skills
+#define MAX_HERO_HABS    N_HABILIDADES    // até todas as skills disponíveis
+#define MIN_MISS_REQ     1                // missões pedem no mínimo 1 skill
+#define MAX_MISS_REQ     4                // missões pedem no máximo 4 skills
+#define BASE_LOT_MIN     4                // lotação mínima da base
+#define BASE_LOT_MAX     6                // lotação máxima da base
+
 
 int main(void) {
-    // --- Parâmetros fixos do cenário de teste ---
-    int n_habs         = 3;
-    int n_herois       = 1;
-    int n_bases        = 1;
-    int n_missoes      = 1;
-    int n_compostos_v  = 0;
-    int tamanho_mundo  = 4320;
+    // Semente fixa para reproducibilidade
+    srand(0);
 
-    // Cria o mundo
-    World *W = world_create(n_herois,
-                            n_bases,
-                            n_missoes,
-                            n_habs,
-                            n_compostos_v,
-                            tamanho_mundo);
+    World *W = world_create(
+        N_HEROIS,
+        N_BASES,
+        N_MISSOES,
+        N_HABILIDADES,
+        N_COMPOSTOS_V,
+        N_TAMANHO_MUNDO,
+        T_FIM_DO_MUNDO
+    );
     if (!W) {
         fprintf(stderr, "Erro: falha ao criar World\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    // --- Cria 1 herói manualmente ---
-    // Herói 0: paciência 5, velocidade 10, base 0, habilidades {0,1}
-    struct cjto_t *habs = cjto_cria(n_habs);
-    cjto_insere(habs, 0);
-    cjto_insere(habs, 1);
-    Hero *h = hero_create(0, habs, 5, 10);
-    h->base_atual = 0;
-    W->herois[0] = h;
+    // 1) Inicializa os heróis com skills moderadamente altas
+    for (int i = 0; i < N_HEROIS; i++) {
+        int pac = utils_rand_int(0, 100);
+        int vel = utils_rand_int(50, 5000);
+        int k   = utils_rand_int(MIN_HERO_HABS, MAX_HERO_HABS);
+        struct cjto_t *habs = cjto_aleat(k, N_HABILIDADES);
+        Hero *h = hero_create(i, habs, pac, vel);
+        W->herois[i] = h;
+    }
 
-    // --- Cria 1 base manualmente ---
-    // Base 0: lotação 1, posição (0,0)
-    W->bases[0] = base_create(0, 1, (Point){ .x = 0, .y = 0 });
+    // 2) Inicializa as bases com lotação padrão
+    for (int i = 0; i < N_BASES; i++) {
+        Point loc = {
+            utils_rand_int(0, N_TAMANHO_MUNDO - 1),
+            utils_rand_int(0, N_TAMANHO_MUNDO - 1)
+        };
+        int lot = utils_rand_int(BASE_LOT_MIN, BASE_LOT_MAX);
+        Base *b = base_create(i, lot, loc);
+        W->bases[i] = b;
+    }
 
-    // --- Cria 1 missão manualmente ---
-    // Missão 0: requer {0,1}, posição (10,10)
-    struct cjto_t *req = cjto_cria(n_habs);
-    cjto_insere(req, 0);
-    cjto_insere(req, 1);
-    W->missoes[0] = mission_create(0, req, (Point){ .x = 10, .y = 10 });
+    // 3) Inicializa as missões com requisitos moderados
+    for (int i = 0; i < N_MISSOES; i++) {
+        Point loc = {
+            utils_rand_int(0, N_TAMANHO_MUNDO - 1),
+            utils_rand_int(0, N_TAMANHO_MUNDO - 1)
+        };
+        int k = utils_rand_int(MIN_MISS_REQ, MAX_MISS_REQ);
+        struct cjto_t *req = cjto_aleat(k, N_HABILIDADES);
+        Mission *m = mission_create(i, req, loc);
+        W->missoes[i] = m;
+    }
 
-    // Executa a simulação
+    // 4) Executa simulação e libera memória
     simular(W);
-
-    // Limpa tudo
     world_destroy(W);
-    return 0;
+    return EXIT_SUCCESS;
 }

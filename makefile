@@ -1,47 +1,43 @@
-# makefile The Boys
-# Carlos Maziero - DINF/UFPR, 2024/2
+# Makefile para The Boys (preserva conjunto.o)
+CC       = gcc
+CFLAGS   = -std=c99 -Wall -Wextra -Werror -g -Iincludes -Itads
+RM       = rm -f
 
-CC      = gcc
-CFLAGS  = -Wall -Wextra -Werror -g -std=c99
-LDLIBS  = -lm
-MAIN    = theboys
-ENTREGA = $(MAIN)
+SRCDIR   = src
+TADSDIR  = tads
 
-# lista de arquivos de cabeçalho (a completar)
-HDR = fila.h fprio.h conjunto.h
+# Fontes .c (sem conjunto.c)
+SRCS = \
+    $(SRCDIR)/entity.c     \
+    $(SRCDIR)/event.c      \
+    $(SRCDIR)/log.c        \
+    $(SRCDIR)/simulation.c \
+    $(SRCDIR)/utils.c      \
+    $(TADSDIR)/fprio.c     \
+    $(TADSDIR)/lista.c     \
+    theboys.c
 
-# lista de arquivos-objeto (a completar)
-# não inclua conjunto.o, senão ele será removido com "make clean"
-OBJ = fila.o fprio.o theboys.o
+# Objetos gerados
+OBJS = $(SRCS:.c=.o)
 
-# construir o executável
-$(MAIN): $(MAIN).o $(OBJ) conjunto.o
+# Objeto pré-compilado (não será removido pelo clean)
+DEPS_O = $(TADSDIR)/conjunto.o
 
-# construir os arquivos-objeto (a completar)
-$(MAIN).o: $(MAIN).c $(HDR)
+# Executável final
+TARGET = theboys
 
-# construir os TADs
-fila.o: fila.c fila.h
-fprio.o: fprio.c fprio.h
+.PHONY: all clean
 
-# executar
-run: $(MAIN)
-	./$(MAIN)
+all: $(TARGET)
 
-# testar no Valgrind
-valgrind: $(MAIN)
-	valgrind --leak-check=full --track-origins=yes ./$(MAIN)
+# Link final, inclui o conjunto.o
+$(TARGET): $(OBJS) $(DEPS_O)
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
-# gerar arquivo TGZ para entregar
-tgz: clean
-	-mkdir -p /tmp/$(USER)/$(ENTREGA)
-	chmod 0700 /tmp/$(USER)/$(ENTREGA)
-	cp *.c *.h conjunto.o makefile /tmp/$(USER)/$(ENTREGA)
-	tar czvf $(ENTREGA).tgz -C /tmp/$(USER) $(ENTREGA)
-	rm -rf /tmp/$(USER)
-	@echo "Arquivo $(ENTREGA).tgz criado para entrega"
+# Compilação genérica de .c → .o
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# limpar arquivos temporários
+# clean **NÃO** remove conjunto.o
 clean:
-	rm -f *~ $(OBJ) $(MAIN) /tmp/$(USER)/$(ENTREGA) $(ENTREGA).tgz
-
+	$(RM) $(OBJS) $(TARGET)

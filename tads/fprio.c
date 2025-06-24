@@ -47,7 +47,6 @@ struct fprio_t *fprio_destroi (struct fprio_t *f) {
     struct fpnodo_t *atual = f->inicio;
     while (atual != NULL) {
         struct fpnodo_t *proximo = atual->prox;
-        free(atual->item); // libera item
         free(atual); // libera o no 
         atual = proximo; // avanca
     }

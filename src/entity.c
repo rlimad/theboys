@@ -1,11 +1,10 @@
-// src/entity.c
 #include <stdlib.h>
 #include <string.h>
 #include "entity.h"
 #include "conjunto.h"
 #include "lista.h"
 
-// ----- Hero -----
+// ----- heroi -----
 Hero *hero_create(int id, struct cjto_t *habs, int paciencia, int velocidade) {
     Hero *h = malloc(sizeof(Hero));
     if (!h) return NULL;
@@ -25,7 +24,7 @@ void hero_destroy(Hero *h) {
     free(h);
 }
 
-// ----- Base -----
+// ----- base -----
 Base *base_create(int id, int lotacao, Point local) {
     Base *b = malloc(sizeof(Base));
     if (!b) return NULL;
@@ -46,7 +45,7 @@ void base_destroy(Base *b) {
     free(b);
 }
 
-// ----- Mission -----
+// ----- missao -----
 Mission *mission_create(int id, struct cjto_t *req_habs, Point local) {
     Mission *m = malloc(sizeof(Mission));
     if (!m) return NULL;
@@ -64,9 +63,10 @@ void mission_destroy(Mission *m) {
     free(m);
 }
 
-// ----- World -----
+// ----- mundo -----
 World *world_create(int n_herois, int n_bases, int n_missoes,
-                    int n_habilidades, int n_compostos_v, int tamanho_mundo) {
+                    int n_habilidades, int n_compostos_v,
+                    int tamanho_mundo, int t_fim) {
     World *w = malloc(sizeof(World));
     if (!w) return NULL;
 
@@ -88,25 +88,23 @@ World *world_create(int n_herois, int n_bases, int n_missoes,
     w->n_habilidades = n_habilidades;
     w->n_compostos_v = n_compostos_v;
     w->tamanho_mundo = tamanho_mundo;
+    w->t_fim = t_fim;
     w->relogio = 0;
     return w;
 }
 
 void world_destroy(World *w) {
     if (!w) return;
-    for (int i = 0; i < w->n_herois; i++) {
+    for (int i = 0; i < w->n_herois; i++)
         if (w->herois[i]) hero_destroy(w->herois[i]);
-    }
     free(w->herois);
 
-    for (int i = 0; i < w->n_bases; i++) {
+    for (int i = 0; i < w->n_bases; i++)
         if (w->bases[i]) base_destroy(w->bases[i]);
-    }
     free(w->bases);
 
-    for (int i = 0; i < w->n_missoes; i++) {
+    for (int i = 0; i < w->n_missoes; i++)
         if (w->missoes[i]) mission_destroy(w->missoes[i]);
-    }
     free(w->missoes);
 
     free(w);
